@@ -43,6 +43,8 @@ def main():
     parser.add_argument('--batch-size', type=int, default=1)
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--isColab', action='store_true')
+    parser.add_argument('--method', default="MaxLogit")
+
     args = parser.parse_args()
     anomaly_score_list = []
     ood_gts_list = []
@@ -90,7 +92,19 @@ def main():
         images = images.permute(0,3,1,2)
         with torch.no_grad():
             result = model(images)
-        anomaly_result = 1.0 - np.max(result.squeeze(0).data.cpu().numpy(), axis=0)            
+
+        if args.method == "MaxLogit":
+            anomaly_result = 1.0 - torch.max(result.squeeze(0), dim=0)[0].cpu().numpy()
+            #anomaly_result = 1.0 - np.max(result.squeeze(0).data.cpu().numpy(), axis=0)
+        elif args.method == "MPS":
+            soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
+            anomaly_result = 1.0 - torch.max(soft_probs, dim=0)[0].cpu().numpy()
+        elif args.method == "MaxEntropy":
+            soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
+            anomaly_result = -1.0 * torch.sum(soft_probs * torch.log(soft_probs), dim=0).cpu().numpy()
+            #anomaly_result = -1.0 * torch.sum(soft_probs * torch.nn.functional.log_softmax(result.squeeze(0), dim=0), dim=0).cpu().numpy()
+
+
         pathGT = path.replace("images", "labels_masks")                
         if "RoadObsticle21" in pathGT:
            pathGT = pathGT.replace("webp", "png")
