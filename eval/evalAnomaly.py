@@ -44,7 +44,7 @@ def main():
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--isColab', action='store_true')
     parser.add_argument('--method', default="MaxLogit")         # MaxLogit, MPS, MaxEntropy
-    parser.add_argument('--withT', type=float, default=1.1)     # Temperature scaling
+    parser.add_argument('--withT', type=float, default=1.0)     # Temperature scaling
 
     args = parser.parse_args()
     anomaly_score_list = []
