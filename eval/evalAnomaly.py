@@ -43,12 +43,15 @@ def main():
     parser.add_argument('--batch-size', type=int, default=1)
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--isColab', action='store_true')
-    parser.add_argument('--method', default="MaxLogit")         # MaxLogit, MPS, MaxEntropy
+    parser.add_argument('--method', default="MaxLogit")         # MaxLogit, MSP, MaxEntropy
     parser.add_argument('--withT', type=float, default=1.0)     # Temperature scaling
 
     args = parser.parse_args()
     anomaly_score_list = []
     ood_gts_list = []
+
+    assert (args.method in ["MaxLogit", "MSP", "MaxEntropy"]), "Invalid method"
+    assert (args.withT > 0.0), "Invalid temperature"
 
     if not os.path.exists('results.txt'):
         open('results.txt', 'w').close()
@@ -97,7 +100,7 @@ def main():
         if args.method == "MaxLogit":
             anomaly_result = 1.0 - torch.max(result.squeeze(0), dim=0)[0].cpu().numpy()
             #anomaly_result = 1.0 - np.max(result.squeeze(0).data.cpu().numpy(), axis=0)
-        elif args.method == "MPS":
+        elif args.method == "MSP":
             if args.withT:
                 # with Temperature scaling
                 soft_probs_withT = torch.nn.functional.softmax(result.squeeze(0)/args.withT, dim=0)
