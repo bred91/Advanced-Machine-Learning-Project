@@ -11,6 +11,10 @@ import os.path as osp
 from argparse import ArgumentParser
 from ood_metrics import fpr_at_95_tpr, calc_metrics, plot_roc, plot_pr,plot_barcode
 from sklearn.metrics import roc_auc_score, roc_curve, auc, precision_recall_curve, average_precision_score
+import matplotlib.pyplot as plt
+from sklearn import preprocessing as pre
+from shapely.geometry import LineString
+
 
 seed = 42
 
@@ -55,7 +59,7 @@ def main():
 
     if not os.path.exists('results.txt'):
         open('results.txt', 'w').close()
-    file = open('results.txt', 'a')
+    # file = open('results.txt', 'a')
 
     modelpath = args.loadDir + args.loadModel
     weightspath = args.loadDir + args.loadWeights
@@ -85,91 +89,126 @@ def main():
     print ("Model and weights LOADED successfully")
     model.eval()
 
-    if (args.isColab):
-        input_path = args.input[0] + '/*.png'
-    else:
-        input_path = args.input[0]
-    
-    for path in glob.glob(os.path.expanduser(str(input_path))):
-        print(path)
-        images = torch.from_numpy(np.array(Image.open(path).convert('RGB'))).unsqueeze(0).float()
-        images = images.permute(0,3,1,2)
-        with torch.no_grad():
-            result = model(images)
+    # if (args.isColab):
+    #     input_path = args.input[0] + '/*.png'
+    # else:
+    #     input_path = args.input[0]
 
-        if args.method == "MaxLogit":
-            anomaly_result = 1.0 - torch.max(result.squeeze(0), dim=0)[0].cpu().numpy()
-            #anomaly_result = 1.0 - np.max(result.squeeze(0).data.cpu().numpy(), axis=0)
-        elif args.method == "MSP":
-            if args.withT:
-                # with Temperature scaling
-                soft_probs_withT = torch.nn.functional.softmax(result.squeeze(0)/args.withT, dim=0)
-                anomaly_result = 1.0 - torch.max(soft_probs_withT, dim=0)[0].cpu().numpy()
-            else:
+    # print(input_path)
+    def fun(temp):
+        for path in glob.glob(os.path.expanduser(str(args.input[0]))):
+            print(path)
+            images = torch.from_numpy(np.array(Image.open(path).convert('RGB'))).unsqueeze(0).float()
+            images = images.permute(0, 3, 1, 2)
+            with torch.no_grad():
+                result = model(images)
+
+            if args.method == "MaxLogit":
+                print("MaxLogit")
+                anomaly_result = 1.0 - torch.max(result.squeeze(0), dim=0)[0].cpu().numpy()
+                # anomaly_result = 1.0 - np.max(result.squeeze(0).data.cpu().numpy(), axis=0)
+            elif args.method == "MSP":
+                if args.withT:
+                    print("MSP TEMP")
+                    # with Temperature scaling
+                    soft_probs_withT = torch.nn.functional.softmax(result.squeeze(0) / temp, dim=0)
+                    anomaly_result = 1.0 - torch.max(soft_probs_withT, dim=0)[0].cpu().numpy()
+                else:
+                    print("MSP")
+                    soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
+                    anomaly_result = 1.0 - torch.max(soft_probs, dim=0)[0].cpu().numpy()
+            elif args.method == "MaxEntropy":
+                print("ENTROPY")
                 soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
-                anomaly_result = 1.0 - torch.max(soft_probs, dim=0)[0].cpu().numpy()
-        elif args.method == "MaxEntropy":
-            soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
-            anomaly_result = -1.0 * torch.sum(soft_probs * torch.log(soft_probs), dim=0).cpu().numpy()
-            #anomaly_result = -1.0 * torch.sum(soft_probs * torch.nn.functional.log_softmax(result.squeeze(0), dim=0), dim=0).cpu().numpy()
+                # anomaly_result = -1.0 * torch.sum(soft_probs * torch.log(soft_probs), dim=0).cpu().numpy()
+                anomaly_result = -1.0 * torch.sum(
+                    soft_probs * torch.nn.functional.log_softmax(result.squeeze(0), dim=0),
+                    dim=0).cpu().numpy()
 
+            pathGT = path.replace("images", "labels_masks")
+            if "RoadObsticle21" in pathGT:
+                pathGT = pathGT.replace("webp", "png")
+            if "fs_static" in pathGT:
+                pathGT = pathGT.replace("jpg", "png")
+            if "RoadAnomaly" in pathGT:
+                pathGT = pathGT.replace("jpg", "png")
 
-        pathGT = path.replace("images", "labels_masks")                
-        if "RoadObsticle21" in pathGT:
-           pathGT = pathGT.replace("webp", "png")
-        if "fs_static" in pathGT:
-           pathGT = pathGT.replace("jpg", "png")                
-        if "RoadAnomaly" in pathGT:
-           pathGT = pathGT.replace("jpg", "png")  
+            mask = Image.open(pathGT)
+            ood_gts = np.array(mask)
 
-        mask = Image.open(pathGT)
-        ood_gts = np.array(mask)
+            if "RoadAnomaly" in pathGT:
+                ood_gts = np.where((ood_gts == 2), 1, ood_gts)
+            if "LostAndFound" in pathGT:
+                ood_gts = np.where((ood_gts == 0), 255, ood_gts)
+                ood_gts = np.where((ood_gts == 1), 0, ood_gts)
+                ood_gts = np.where((ood_gts > 1) & (ood_gts < 201), 1, ood_gts)
 
-        if "RoadAnomaly" in pathGT:
-            ood_gts = np.where((ood_gts==2), 1, ood_gts)
-        if "LostAndFound" in pathGT:
-            ood_gts = np.where((ood_gts==0), 255, ood_gts)
-            ood_gts = np.where((ood_gts==1), 0, ood_gts)
-            ood_gts = np.where((ood_gts>1)&(ood_gts<201), 1, ood_gts)
+            if "Streethazard" in pathGT:
+                ood_gts = np.where((ood_gts == 14), 255, ood_gts)
+                ood_gts = np.where((ood_gts < 20), 0, ood_gts)
+                ood_gts = np.where((ood_gts == 255), 1, ood_gts)
 
-        if "Streethazard" in pathGT:
-            ood_gts = np.where((ood_gts==14), 255, ood_gts)
-            ood_gts = np.where((ood_gts<20), 0, ood_gts)
-            ood_gts = np.where((ood_gts==255), 1, ood_gts)
+            if 1 not in np.unique(ood_gts):
+                continue
+            else:
+                ood_gts_list.append(ood_gts)
+                anomaly_score_list.append(anomaly_result)
+            del result, anomaly_result, ood_gts, mask
+            torch.cuda.empty_cache()
 
-        if 1 not in np.unique(ood_gts):
-            continue              
-        else:
-             ood_gts_list.append(ood_gts)
-             anomaly_score_list.append(anomaly_result)
-        del result, anomaly_result, ood_gts, mask
-        torch.cuda.empty_cache()
+        # file.write("\n")
 
-    file.write( "\n")
+        ood_gts = np.array(ood_gts_list)
+        anomaly_scores = np.array(anomaly_score_list)
 
-    ood_gts = np.array(ood_gts_list)
-    anomaly_scores = np.array(anomaly_score_list)
+        ood_mask = (ood_gts == 1)
+        ind_mask = (ood_gts == 0)
 
-    ood_mask = (ood_gts == 1)
-    ind_mask = (ood_gts == 0)
+        ood_out = anomaly_scores[ood_mask]
+        ind_out = anomaly_scores[ind_mask]
 
-    ood_out = anomaly_scores[ood_mask]
-    ind_out = anomaly_scores[ind_mask]
+        ood_label = np.ones(len(ood_out))
+        ind_label = np.zeros(len(ind_out))
 
-    ood_label = np.ones(len(ood_out))
-    ind_label = np.zeros(len(ind_out))
-    
-    val_out = np.concatenate((ind_out, ood_out))
-    val_label = np.concatenate((ind_label, ood_label))
+        val_out = np.concatenate((ind_out, ood_out))
+        val_label = np.concatenate((ind_label, ood_label))
+        prc_auc = average_precision_score(val_label, val_out)
+        fpr = fpr_at_95_tpr(val_out, val_label)
 
-    prc_auc = average_precision_score(val_label, val_out)
-    fpr = fpr_at_95_tpr(val_out, val_label)
+        print(f'AUPRC score: {prc_auc * 100.0}')
+        print(f'FPR@TPR95: {fpr * 100.0}')
 
-    print(f'AUPRC score: {prc_auc*100.0}')
-    print(f'FPR@TPR95: {fpr*100.0}')
+        # file.write(('    AUPRC score:' + str(prc_auc * 100.0) + '   FPR@TPR95:' + str(fpr * 100.0)))
+        # file.close()
+        return prc_auc * 100.0, fpr * 100.0
 
-    file.write(('    AUPRC score:' + str(prc_auc*100.0) + '   FPR@TPR95:' + str(fpr*100.0) ))
-    file.close()
+    temps = np.arange(0.4, 1.2, 0.1)
+    results = []
+    for t in temps:
+        results.append(fun(t))
+    print(np.array([res[1] for res in results]))
+    auprc = pre.MinMaxScaler().fit_transform(np.array([res[0] for res in results]).reshape(-1, 1))
+    fpr = pre.MinMaxScaler().fit_transform(np.array([res[1] for res in results]).reshape(-1, 1))
+    first_line = LineString(np.column_stack((temps, auprc)))
+    second_line = LineString(np.column_stack((temps, fpr)))
+    intersection = first_line.intersection(second_line)
+    plt.plot(temps, auprc, color='b', linestyle='--', label='AuPRC')
+    plt.plot(temps, auprc, 'bo', markersize=5)
+    plt.plot(temps, fpr, color='r', linestyle='--', label='FPR95')
+    plt.plot(temps, fpr, 'ro', markersize=5)
+    if intersection.geom_type == 'MultiPoint':
+        plt.plot(intersection.xy, 'go', label='Intersections')
+        for i in intersection:
+            x, y = i.xy
+            plt.annotate(f"Temp: {x[0]:.3f}", (x[0], y[0]))
+    elif intersection.geom_type == 'Point':
+        plt.plot(*intersection.xy, 'go', label='Intersection')
+        x, y = intersection.xy
+        plt.annotate(f"Temp: {x[0]:.3f}", (x[0], y[0]))
+    plt.xlabel("Temperature")
+    plt.title("Temperature tendency on AuPRC & FPR95")
+    plt.legend(loc="upper left")
+    plt.show()
 
 if __name__ == '__main__':
     main()
