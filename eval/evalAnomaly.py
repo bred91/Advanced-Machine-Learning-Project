@@ -43,7 +43,8 @@ def main():
     parser.add_argument('--batch-size', type=int, default=1)
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--isColab', action='store_true')
-    parser.add_argument('--method', default="MaxLogit")
+    parser.add_argument('--method', default="MaxLogit")         # MaxLogit, MPS, MaxEntropy
+    parser.add_argument('--withT', type=float, default=1.1)     # Temperature scaling
 
     args = parser.parse_args()
     anomaly_score_list = []
@@ -97,8 +98,13 @@ def main():
             anomaly_result = 1.0 - torch.max(result.squeeze(0), dim=0)[0].cpu().numpy()
             #anomaly_result = 1.0 - np.max(result.squeeze(0).data.cpu().numpy(), axis=0)
         elif args.method == "MPS":
-            soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
-            anomaly_result = 1.0 - torch.max(soft_probs, dim=0)[0].cpu().numpy()
+            if args.withT:
+                # with Temperature scaling
+                soft_probs_withT = torch.nn.functional.softmax(result.squeeze(0)/args.withT, dim=0)
+                anomaly_result = 1.0 - torch.max(soft_probs_withT, dim=0)[0].cpu().numpy()
+            else:
+                soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
+                anomaly_result = 1.0 - torch.max(soft_probs, dim=0)[0].cpu().numpy()
         elif args.method == "MaxEntropy":
             soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
             anomaly_result = -1.0 * torch.sum(soft_probs * torch.log(soft_probs), dim=0).cpu().numpy()
