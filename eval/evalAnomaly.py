@@ -44,14 +44,20 @@ def main():
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--isColab', action='store_true')
     parser.add_argument('--method', default="MaxLogit")         # MaxLogit, MSP, MaxEntropy
-    parser.add_argument('--withT', type=float, default=1.0)     # Temperature scaling
+    parser.add_argument('--withT', type=float, default=None)    # Temperature scaling
 
     args = parser.parse_args()
     anomaly_score_list = []
     ood_gts_list = []
 
+    print("Method: ", args.method)
+    print("Dataset: ", args.input[0].replace("\\", "/").split("/")[args.input[0].replace("\\", "/").split("/").index("Validation_Dataset") + 1])
+
     assert (args.method in ["MaxLogit", "MSP", "MaxEntropy"]), "Invalid method"
-    assert (args.withT > 0.0), "Invalid temperature"
+    if args.withT != None:
+        print("Temperature scaling with T = ", args.withT)
+        assert (args.method == "MSP"), "Invalid method (withT is only for MSP)"
+        assert (args.withT > 0.0), "Invalid temperature"
 
     if not os.path.exists('results.txt'):
         open('results.txt', 'w').close()
