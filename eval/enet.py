@@ -8,7 +8,7 @@ Date:       2023/04/15
 import torch
 import torch.nn as nn
 
-from .modules import conv1x1, ConvBNAct, Activation
+from modules import conv1x1, ConvBNAct, Activation
 
 
 class ENet(nn.Module):

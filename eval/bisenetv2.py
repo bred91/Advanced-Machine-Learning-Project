@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .modules import (conv3x3, conv1x1, DWConvBNAct, PWConvBNAct, ConvBNAct, 
+from modules import (conv3x3, conv1x1, DWConvBNAct, PWConvBNAct, ConvBNAct,
                         Activation, SegHead)
 
 
