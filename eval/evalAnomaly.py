@@ -7,6 +7,8 @@ import random
 from PIL import Image
 import numpy as np
 from erfnet import ERFNet
+from bisenetv2 import BiSeNetv2
+from enet import ENet
 import os.path as osp
 from argparse import ArgumentParser
 from ood_metrics import fpr_at_95_tpr, calc_metrics, plot_roc, plot_pr,plot_barcode
@@ -34,9 +36,9 @@ def main():
         help="A list of space separated input images; "
         "or a single glob pattern such as 'directory/*.jpg'",
     )  
-    parser.add_argument('--loadDir',default="../trained_models/")
-    parser.add_argument('--loadWeights', default="erfnet_pretrained.pth")
-    parser.add_argument('--loadModel', default="erfnet.py")
+    parser.add_argument('--loadDir',default="../")
+    parser.add_argument('--loadWeights', default="trained_models/bisenetV2_pretrained.pth")
+    parser.add_argument('--loadModel', default="eval/bisenetv2.py")
     parser.add_argument('--subset', default="val")  #can be val or train (must have labels)
     parser.add_argument('--datadir', default="/home/shyam/ViT-Adapter/segmentation/data/cityscapes/")
     parser.add_argument('--num-workers', type=int, default=4)
@@ -45,6 +47,7 @@ def main():
     parser.add_argument('--isColab', action='store_true')
     parser.add_argument('--method', default="MaxLogit")         # MaxLogit, MSP, MaxEntropy
     parser.add_argument('--withT', type=float, default=None)    # Temperature scaling
+    parser.add_argument('--model', default="Erfnet")            # Erfnet, BisenetV2, Enet
 
     args = parser.parse_args()
     anomaly_score_list = []
@@ -54,6 +57,7 @@ def main():
     print("Dataset: ", args.input[0].replace("\\", "/").split("/")[args.input[0].replace("\\", "/").split("/").index("Validation_Dataset") + 1])
 
     assert (args.method in ["MaxLogit", "MSP", "MaxEntropy"]), "Invalid method"
+    assert (args.model in ["Erfnet", "BisenetV2", "Enet"]), "Invalid model"
     if args.withT != None:
         print("Temperature scaling with T = ", args.withT)
         assert (args.method == "MSP"), "Invalid method (withT is only for MSP)"
@@ -69,7 +73,14 @@ def main():
     print ("Loading model: " + modelpath)
     print ("Loading weights: " + weightspath)
 
-    model = ERFNet(NUM_CLASSES)
+    if args.model == "Erfnet":
+        model = ERFNet(NUM_CLASSES)
+    elif args.model == "BisenetV2":
+        model = BiSeNetv2(num_class=NUM_CLASSES,use_aux=False)
+    elif args.model == "Enet":
+        model = ENet(NUM_CLASSES)
+    else:
+        raise ValueError("Invalid model")
 
     if (not args.cpu):
         model = torch.nn.DataParallel(model).cuda()
