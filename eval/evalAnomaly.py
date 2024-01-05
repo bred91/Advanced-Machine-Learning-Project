@@ -56,6 +56,7 @@ def main():
     print("Method: ", args.method)
     print("Dataset: ", args.input[0].replace("\\", "/").split("/")[args.input[0].replace("\\", "/").split("/").index("Validation_Dataset") + 1])
 
+    # input validation
     assert (args.method in ["MaxLogit", "MSP", "MaxEntropy"]), "Invalid method"
     assert (args.model in ["Erfnet", "BisenetV2", "Enet"]), "Invalid model"
     if args.withT != None:
@@ -73,10 +74,11 @@ def main():
     print ("Loading model: " + modelpath)
     print ("Loading weights: " + weightspath)
 
+    # model management
     if args.model == "Erfnet":
         model = ERFNet(NUM_CLASSES)
     elif args.model == "BisenetV2":
-        model = BiSeNetv2(num_class=NUM_CLASSES,use_aux=False)
+        model = BiSeNetv2(num_class=NUM_CLASSES,use_aux=False)  # no aux heads for inference
     elif args.model == "Enet":
         model = ENet(NUM_CLASSES)
     else:
@@ -102,10 +104,13 @@ def main():
     print ("Model and weights LOADED successfully")
     model.eval()
 
+    # image extension management
     if (args.isColab):
+        # Colab fs
         if "RoadObsticle21" in args.input[0]:
             extension = "webp"
-        elif "fs_static" in args.input[0] or "RoadAnomaly" in args.input[0]:
+        elif ("fs_static" in args.input[0]
+              or ("RoadAnomaly" in args.input[0] and "RoadAnomaly21" not in args.input[0])):
             extension = "jpg"
         else:
             extension = "png"
