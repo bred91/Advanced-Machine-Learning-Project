@@ -150,9 +150,9 @@ if __name__ == '__main__':
 
     parser.add_argument('--state')
 
-    parser.add_argument('--loadDir',default="../trained_models/")
-    parser.add_argument('--loadWeights', default="bisenetV2_pretrained.pth")
-    parser.add_argument('--loadModel', default="bisenetv2.py")
+    parser.add_argument('--loadDir',default="../")
+    parser.add_argument('--loadWeights', default="trained_models/bisenetV2_pretrained.pth")
+    parser.add_argument('--loadModel', default="eval/bisenetv2.py")
     parser.add_argument('--subset', default="val")  #can be val or train (must have labels)
     parser.add_argument('--datadir', default="/home/shyam/ViT-Adapter/segmentation/data/cityscapes/")
     parser.add_argument('--num-workers', type=int, default=4)
