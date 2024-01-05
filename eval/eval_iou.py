@@ -20,6 +20,8 @@ from torchvision.transforms import ToTensor, ToPILImage
 
 from dataset import cityscapes
 from erfnet import ERFNet
+from bisenetv2 import BiSeNetv2
+from enet import ENet
 from transform import Relabel, ToLabel, Colorize
 from iouEval import iouEval, getColorEntry
 
@@ -45,7 +47,18 @@ def main(args):
     print ("Loading model: " + modelpath)
     print ("Loading weights: " + weightspath)
 
-    model = ERFNet(NUM_CLASSES)
+    # input validation
+    assert (args.model in ["Erfnet", "BisenetV2", "Enet"]), "Invalid model"
+
+    # model management
+    if args.model == "Erfnet":
+        model = ERFNet(NUM_CLASSES)
+    elif args.model == "BisenetV2":
+        model = BiSeNetv2(num_class=NUM_CLASSES, use_aux=False)  # no aux heads for inference
+    elif args.model == "Enet":
+        model = ENet(NUM_CLASSES)
+    else:
+        raise ValueError("Invalid model")
 
     #model = torch.nn.DataParallel(model)
     if (not args.cpu):
@@ -138,12 +151,13 @@ if __name__ == '__main__':
     parser.add_argument('--state')
 
     parser.add_argument('--loadDir',default="../trained_models/")
-    parser.add_argument('--loadWeights', default="erfnet_pretrained.pth")
-    parser.add_argument('--loadModel', default="erfnet.py")
+    parser.add_argument('--loadWeights', default="bisenetV2_pretrained.pth")
+    parser.add_argument('--loadModel', default="bisenetv2.py")
     parser.add_argument('--subset', default="val")  #can be val or train (must have labels)
     parser.add_argument('--datadir', default="/home/shyam/ViT-Adapter/segmentation/data/cityscapes/")
     parser.add_argument('--num-workers', type=int, default=4)
     parser.add_argument('--batch-size', type=int, default=1)
     parser.add_argument('--cpu', action='store_true')
+    parser.add_argument('--model', default="Erfnet")            # Erfnet, BisenetV2, Enet
 
     main(parser.parse_args())
