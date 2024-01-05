@@ -213,7 +213,7 @@ class BilateralGuidedAggregationLayer(nn.Module):
 
         # Ensure tensors have the same size before multiplication
         if not self.training and x_d_high.size() != x_s_high.size():
-            size = [min(dim) for dim in zip(x_d_high.size(), x_s_high.size())]
+            size = [min(dim) for dim in zip(x_d_high.size()[2:], x_s_high.size()[2:])]  # Only include spatial dimensions
             x_d_high = F.interpolate(x_d_high, size, mode='bilinear', align_corners=True)
             x_s_high = F.interpolate(x_s_high, size, mode='bilinear', align_corners=True)
 
