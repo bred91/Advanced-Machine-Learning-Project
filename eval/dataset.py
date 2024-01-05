@@ -78,6 +78,13 @@ class cityscapes(Dataset):
         self.input_transform = input_transform
         self.target_transform = target_transform
 
+        print(self.images_root)
+        print(self.labels_root)
+        print(self.filenames)
+        print(self.filenamesGt)
+        print(self.input_transform)
+        print(self.target_transform)
+
     def __getitem__(self, index):
         print(index)
         print(self.filenames)
