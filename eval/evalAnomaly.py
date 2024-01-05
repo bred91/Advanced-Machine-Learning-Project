@@ -103,7 +103,13 @@ def main():
     model.eval()
 
     if (args.isColab):
-        input_path = args.input[0] + '/*.png'
+        if "RoadObsticle21" in args.input[0]:
+            extension = "webp"
+        elif "fs_static" in args.input[0] or "RoadAnomaly" in args.input[0]:
+            extension = "jpg"
+        else:
+            extension = "png"
+        input_path = args.input[0] + '/*.' + extension
     else:
         input_path = args.input[0]
     
