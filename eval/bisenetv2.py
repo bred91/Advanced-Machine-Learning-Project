@@ -210,6 +210,13 @@ class BilateralGuidedAggregationLayer(nn.Module):
         
         x_s_high = self.semantic_high(x_s)
         x_s_low = self.semantic_low(x_s)
+
+        # Ensure tensors have the same size before multiplication
+        if not self.training and x_d_high.size() != x_s_high.size():
+            size = [min(dim) for dim in zip(x_d_high.size(), x_s_high.size())]
+            x_d_high = F.interpolate(x_d_high, size, mode='bilinear', align_corners=True)
+            x_s_high = F.interpolate(x_s_high, size, mode='bilinear', align_corners=True)
+
         x_high = x_d_high * x_s_high
         x_low = x_d_low * x_s_low
         
