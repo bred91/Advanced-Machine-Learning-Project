@@ -79,6 +79,9 @@ class cityscapes(Dataset):
         self.target_transform = target_transform
 
     def __getitem__(self, index):
+        print(index)
+        print(self.filenames)
+        print(self.filenamesGt)
         filename = self.filenames[index]
         filenameGt = self.filenamesGt[index]
 
