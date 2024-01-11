@@ -59,7 +59,7 @@ class BaseConfig:
         self.resume_training = True
         self.load_ckpt = True
         self.load_ckpt_path = None
-        self.base_workers = 6
+        self.base_workers = 8
         self.random_seed = 1
         self.use_ema = False
 
