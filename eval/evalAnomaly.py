@@ -9,6 +9,7 @@ import numpy as np
 from erfnet import ERFNet
 from bisenetv2 import BiSeNetv2
 from enet import ENet
+import torch.nn.functional as F
 import os.path as osp
 from argparse import ArgumentParser
 from ood_metrics import fpr_at_95_tpr, calc_metrics, plot_roc, plot_pr,plot_barcode
@@ -37,8 +38,8 @@ def main():
         "or a single glob pattern such as 'directory/*.jpg'",
     )  
     parser.add_argument('--loadDir',default="../")
-    parser.add_argument('--loadWeights', default="trained_models/bisenetV2_pretrained.pth")
-    parser.add_argument('--loadModel', default="eval/bisenetv2.py")
+    parser.add_argument('--loadWeights', default="trained_models/erfnet_pretrained.pth")
+    parser.add_argument('--loadModel', default="eval/erfnet.py")
     parser.add_argument('--subset', default="val")  #can be val or train (must have labels)
     parser.add_argument('--datadir', default="/home/shyam/ViT-Adapter/segmentation/data/cityscapes/")
     parser.add_argument('--num-workers', type=int, default=4)
@@ -137,9 +138,12 @@ def main():
                 soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
                 anomaly_result = 1.0 - torch.max(soft_probs, dim=0)[0].cpu().numpy()
         elif args.method == "MaxEntropy":
-            soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
-            anomaly_result = -1.0 * torch.sum(soft_probs * torch.log(soft_probs), dim=0).cpu().numpy()
-            #anomaly_result = -1.0 * torch.sum(soft_probs * torch.nn.functional.log_softmax(result.squeeze(0), dim=0), dim=0).cpu().numpy()
+            soft_probs = F.softmax(result.squeeze(0), dim=0)
+            log_soft_probs = F.log_softmax(result.squeeze(0), dim=0)
+            anomaly_result = - torch.div(torch.sum(soft_probs * log_soft_probs, dim=0),
+                                         torch.log(torch.tensor(result.shape[1]))).cpu().numpy()
+            # anomaly_result = - torch.div(torch.sum(soft_probs * log_soft_probs, dim=0), np.log(NUM_CLASSES)).cpu().numpy()
+
 
 
         pathGT = path.replace("images", "labels_masks")                
