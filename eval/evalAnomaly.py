@@ -55,6 +55,7 @@ def main():
     anomaly_score_list = []
     ood_gts_list = []
 
+    print("Task: ", args.task)
     print("Method: ", args.method)
     print("Dataset: ", args.input[0].replace("\\", "/").split("/")[args.input[0].replace("\\", "/").split("/").index("Validation_Dataset") + 1])
 
