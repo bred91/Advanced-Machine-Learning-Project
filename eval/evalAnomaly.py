@@ -59,6 +59,7 @@ def main():
     print("Dataset: ", args.input[0].replace("\\", "/").split("/")[args.input[0].replace("\\", "/").split("/").index("Validation_Dataset") + 1])
 
     # input validation
+    assert (args.task in [2, 3]), "Invalid task"
     assert (args.method in ["MaxLogit", "MSP", "MaxEntropy"]), "Invalid method"
     assert (args.model in ["Erfnet", "BisenetV2", "Enet"]), "Invalid model"
     if args.withT != None:
