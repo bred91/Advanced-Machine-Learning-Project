@@ -126,8 +126,8 @@ def main():
             result = model(images)
 
         if args.method == "MaxLogit":
-            anomaly_result = 1.0 - torch.max(result.squeeze(0), dim=0)[0].cpu().numpy()
-            #anomaly_result = 1.0 - np.max(result.squeeze(0).data.cpu().numpy(), axis=0)
+            anomaly_result = - torch.max(result.squeeze(0), dim=0)[0].cpu().numpy()
+            #anomaly_result = - np.max(result.squeeze(0).data.cpu().numpy(), axis=0)
         elif args.method == "MSP":
             if args.withT:
                 # with Temperature scaling
