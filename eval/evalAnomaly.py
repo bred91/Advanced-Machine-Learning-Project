@@ -49,6 +49,7 @@ def main():
     parser.add_argument('--method', default="MaxLogit")         # MaxLogit, MSP, MaxEntropy
     parser.add_argument('--withT', type=float, default=None)    # Temperature scaling
     parser.add_argument('--model', default="Erfnet")            # Erfnet, BisenetV2, Enet
+    parser.add_argument('--task', type=int, default=2)
 
     args = parser.parse_args()
     anomaly_score_list = []
@@ -126,25 +127,28 @@ def main():
         with torch.no_grad():
             result = model(images)
 
-        if args.method == "MaxLogit":
-            anomaly_result = - torch.max(result.squeeze(0), dim=0)[0].cpu().numpy()
-            #anomaly_result = - np.max(result.squeeze(0).data.cpu().numpy(), axis=0)
-        elif args.method == "MSP":
-            if args.withT:
-                # with Temperature scaling
-                soft_probs_withT = torch.nn.functional.softmax(result.squeeze(0)/args.withT, dim=0)
-                anomaly_result = 1.0 - torch.max(soft_probs_withT, dim=0)[0].cpu().numpy()
-            else:
-                soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
-                anomaly_result = 1.0 - torch.max(soft_probs, dim=0)[0].cpu().numpy()
-        elif args.method == "MaxEntropy":
-            soft_probs = F.softmax(result.squeeze(0), dim=0)
-            log_soft_probs = F.log_softmax(result.squeeze(0), dim=0)
-            anomaly_result = - torch.div(torch.sum(soft_probs * log_soft_probs, dim=0),
-                                         torch.log(torch.tensor(result.shape[1]))).cpu().numpy()
-            # anomaly_result = - torch.div(torch.sum(soft_probs * log_soft_probs, dim=0), np.log(NUM_CLASSES)).cpu().numpy()
-
-
+        # tasks
+        if args.task == 2:
+            # methods
+            if args.method == "MaxLogit":
+                anomaly_result = - torch.max(result.squeeze(0), dim=0)[0].cpu().numpy()
+                #anomaly_result = - np.max(result.squeeze(0).data.cpu().numpy(), axis=0)
+            elif args.method == "MSP":
+                if args.withT:
+                    # with Temperature scaling
+                    soft_probs_withT = torch.nn.functional.softmax(result.squeeze(0)/args.withT, dim=0)
+                    anomaly_result = 1.0 - torch.max(soft_probs_withT, dim=0)[0].cpu().numpy()
+                else:
+                    soft_probs = torch.nn.functional.softmax(result.squeeze(0), dim=0)
+                    anomaly_result = 1.0 - torch.max(soft_probs, dim=0)[0].cpu().numpy()
+            elif args.method == "MaxEntropy":
+                soft_probs = F.softmax(result.squeeze(0), dim=0)
+                log_soft_probs = F.log_softmax(result.squeeze(0), dim=0)
+                anomaly_result = - torch.div(torch.sum(soft_probs * log_soft_probs, dim=0),
+                                             torch.log(torch.tensor(result.shape[1]))).cpu().numpy()
+                # anomaly_result = - torch.div(torch.sum(soft_probs * log_soft_probs, dim=0), np.log(NUM_CLASSES)).cpu().numpy()
+        elif args.task == 3:
+            anomaly_result = result.squeeze(0).data.cpu().numpy()[19, :, :]
 
         pathGT = path.replace("images", "labels_masks")                
         if "RoadObsticle21" in pathGT:
