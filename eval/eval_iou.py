@@ -39,6 +39,12 @@ target_transform_cityscapes = Compose([
     Relabel(255, 19),   #ignore label to 19
 ])
 
+target_transform_cityscapes_task3 = Compose([
+    Resize(512),
+    ToLabel(),
+    #Relabel(255, 19),   #ignore label to 19
+])
+
 def main(args):
 
     modelpath = args.loadDir + args.loadModel
@@ -86,8 +92,10 @@ def main(args):
     if(not os.path.exists(args.datadir)):
         print ("Error: datadir could not be loaded")
 
-
-    loader = DataLoader(cityscapes(args.datadir, input_transform_cityscapes, target_transform_cityscapes, subset=args.subset), num_workers=args.num_workers, batch_size=args.batch_size, shuffle=False)
+    if args.task == 3:
+        loader = DataLoader(cityscapes(args.datadir, input_transform_cityscapes, target_transform_cityscapes_task3, subset=args.subset), num_workers=args.num_workers, batch_size=args.batch_size, shuffle=False)
+    else:
+        loader = DataLoader(cityscapes(args.datadir, input_transform_cityscapes, target_transform_cityscapes, subset=args.subset), num_workers=args.num_workers, batch_size=args.batch_size, shuffle=False)
 
 
     iouEvalVal = iouEval(NUM_CLASSES)
@@ -107,7 +115,8 @@ def main(args):
 
         filenameSave = filename[0].split("leftImg8bit/")[1] 
 
-        #print (step, filenameSave)
+        if args.verbose:
+            print (step, filenameSave)
 
 
     iouVal, iou_classes = iouEvalVal.getIoU()
@@ -162,5 +171,6 @@ if __name__ == '__main__':
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--model', default="Erfnet")            # Erfnet, BisenetV2, Enet
     parser.add_argument('--task', type=int, default=2)
+    parser.add_argument('--verbose', action='store_true')
 
     main(parser.parse_args())
