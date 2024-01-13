@@ -107,7 +107,7 @@ def main(args):
 
         filenameSave = filename[0].split("leftImg8bit/")[1] 
 
-        print (step, filenameSave)
+        #print (step, filenameSave)
 
 
     iouVal, iou_classes = iouEvalVal.getIoU()
