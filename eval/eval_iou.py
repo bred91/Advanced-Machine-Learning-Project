@@ -141,6 +141,8 @@ def main(args):
     print(iou_classes_str[16], "train")
     print(iou_classes_str[17], "motorcycle")
     print(iou_classes_str[18], "bicycle")
+    if args.task == 3:
+        print(iou_classes_str[19], "void")
     print("=======================================")
     iouStr = getColorEntry(iouVal)+'{:0.2f}'.format(iouVal*100) + '\033[0m'
     print ("MEAN IoU: ", iouStr, "%")
@@ -151,13 +153,14 @@ if __name__ == '__main__':
     parser.add_argument('--state')
 
     parser.add_argument('--loadDir',default="../")
-    parser.add_argument('--loadWeights', default="trained_models/bisenetV2_pretrained.pth")
-    parser.add_argument('--loadModel', default="eval/bisenetv2.py")
+    parser.add_argument('--loadWeights', default="trained_models/erfnet_pretrained.pth")
+    parser.add_argument('--loadModel', default="eval/erfnet.py")
     parser.add_argument('--subset', default="val")  #can be val or train (must have labels)
     parser.add_argument('--datadir', default="/home/shyam/ViT-Adapter/segmentation/data/cityscapes/")
     parser.add_argument('--num-workers', type=int, default=4)
     parser.add_argument('--batch-size', type=int, default=1)
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--model', default="Erfnet")            # Erfnet, BisenetV2, Enet
+    parser.add_argument('--task', type=int, default=2)
 
     main(parser.parse_args())
