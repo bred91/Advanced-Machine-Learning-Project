@@ -39,12 +39,6 @@ target_transform_cityscapes = Compose([
     Relabel(255, 19),   #ignore label to 19
 ])
 
-target_transform_cityscapes_task3 = Compose([
-    Resize(512, Image.NEAREST),
-    ToLabel()
-    #Relabel(255, 19),   # we want also label 19 for task 3
-])
-
 def main(args):
 
     modelpath = args.loadDir + args.loadModel
@@ -93,15 +87,12 @@ def main(args):
         print ("Error: datadir could not be loaded")
 
     if args.task == 3:
-        print("evaluating task 3")
-        target_tras = target_transform_cityscapes
         # if ignoreIndex is larger than nClasses, consider no ignoreIndex
         ignore_index = 999  # we want to evaluate all labels
     else:
-        target_tras = target_transform_cityscapes
         ignore_index = 19   # we want to ignore label 19
 
-    city = cityscapes(args.datadir, input_transform_cityscapes, target_tras, subset=args.subset)
+    city = cityscapes(args.datadir, input_transform_cityscapes, target_transform_cityscapes, subset=args.subset)
     loader = DataLoader(city, num_workers=args.num_workers, batch_size=args.batch_size, shuffle=False)
     iouEvalVal = iouEval(NUM_CLASSES, ignoreIndex=ignore_index)
 
@@ -122,7 +113,6 @@ def main(args):
 
         if args.verbose:
             print (step, filenameSave)
-
 
     iouVal, iou_classes = iouEvalVal.getIoU()
 
