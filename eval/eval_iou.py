@@ -86,7 +86,7 @@ def main(args):
     if args.model == "Erfnet":
         model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
     else:
-        model = load_my_state_dict(model, torch.load(weightspath))
+        model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage)["model_state"])
     print ("Model and weights LOADED successfully")
 
 
