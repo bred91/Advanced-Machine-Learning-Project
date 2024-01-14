@@ -83,11 +83,9 @@ def main(args):
                 own_state[name].copy_(param)
         return model
 
-
     model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
 
     print ("Model and weights LOADED successfully")
-
 
     model.eval()
 
@@ -105,7 +103,7 @@ def main(args):
 
     city = cityscapes(args.datadir, input_transform_cityscapes, target_tras, subset=args.subset)
     loader = DataLoader(city, num_workers=args.num_workers, batch_size=args.batch_size, shuffle=False)
-    iouEvalVal = iouEval(NUM_CLASSES, ignore_index=ignore_index)
+    iouEvalVal = iouEval(NUM_CLASSES, ignoreIndex=ignore_index)
 
     start = time.time()
 
