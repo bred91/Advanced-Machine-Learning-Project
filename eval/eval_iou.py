@@ -41,8 +41,8 @@ target_transform_cityscapes = Compose([
 
 target_transform_cityscapes_task3 = Compose([
     Resize(512, Image.NEAREST),
-    ToLabel(),
-    #Relabel(255, 19),   #ignore label to 19
+    ToLabel()
+    #Relabel(255, 19),   # we want also label 19 for task 3
 ])
 
 def main(args):
