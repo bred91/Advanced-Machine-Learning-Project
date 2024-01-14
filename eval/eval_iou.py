@@ -83,7 +83,10 @@ def main(args):
                 own_state[name].copy_(param)
         return model
 
-    model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
+    if args.model == "Erfnet":
+        model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
+    else:
+        model = load_my_state_dict(model, torch.load(weightspath))
     print ("Model and weights LOADED successfully")
 
 
@@ -93,11 +96,12 @@ def main(args):
         print ("Error: datadir could not be loaded")
 
     if args.task == 3:
-        loader = DataLoader(cityscapes(args.datadir, input_transform_cityscapes, target_transform_cityscapes_task3, subset=args.subset), num_workers=args.num_workers, batch_size=args.batch_size, shuffle=False)
+        target_tras = target_transform_cityscapes_task3
     else:
-        loader = DataLoader(cityscapes(args.datadir, input_transform_cityscapes, target_transform_cityscapes, subset=args.subset), num_workers=args.num_workers, batch_size=args.batch_size, shuffle=False)
+        target_tras = target_transform_cityscapes
 
-
+    city = cityscapes(args.datadir, input_transform_cityscapes, target_tras, subset=args.subset)
+    loader = DataLoader(city, num_workers=args.num_workers, batch_size=args.batch_size, shuffle=False)
     iouEvalVal = iouEval(NUM_CLASSES)
 
     start = time.time()
