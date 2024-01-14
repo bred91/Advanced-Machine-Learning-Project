@@ -83,10 +83,9 @@ def main(args):
                 own_state[name].copy_(param)
         return model
 
-    if args.model == "Erfnet":
-        model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
-    else:
-        model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage)["model_state"])
+
+    model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
+
     print ("Model and weights LOADED successfully")
 
 
@@ -118,6 +117,9 @@ def main(args):
         inputs = Variable(images)
         with torch.no_grad():
             outputs = model(inputs)
+
+        if args.model == "BisenetV2" or args.model == "Enet":
+            outputs = outputs[0]
 
         iouEvalVal.addBatch(outputs.max(1)[1].unsqueeze(1).data, labels)
 
