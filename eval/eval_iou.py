@@ -94,7 +94,7 @@ def main(args):
 
     if args.task == 3:
         print("evaluating task 3")
-        target_tras = target_transform_cityscapes_task3
+        target_tras = target_transform_cityscapes
         # if ignoreIndex is larger than nClasses, consider no ignoreIndex
         ignore_index = 999  # we want to evaluate all labels
     else:
