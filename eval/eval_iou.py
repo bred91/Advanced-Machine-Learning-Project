@@ -96,13 +96,17 @@ def main(args):
         print ("Error: datadir could not be loaded")
 
     if args.task == 3:
+        print("evaluating task 3")
         target_tras = target_transform_cityscapes_task3
+        # if ignoreIndex is larger than nClasses, consider no ignoreIndex
+        ignore_index = 999  # we want to evaluate all labels
     else:
         target_tras = target_transform_cityscapes
+        ignore_index = 19   # we want to ignore label 19
 
     city = cityscapes(args.datadir, input_transform_cityscapes, target_tras, subset=args.subset)
     loader = DataLoader(city, num_workers=args.num_workers, batch_size=args.batch_size, shuffle=False)
-    iouEvalVal = iouEval(NUM_CLASSES)
+    iouEvalVal = iouEval(NUM_CLASSES, ignore_index=ignore_index)
 
     start = time.time()
 
