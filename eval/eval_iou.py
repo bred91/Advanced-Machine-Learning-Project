@@ -62,7 +62,7 @@ def main(args):
     elif args.model == "BisenetV2":
         model = BiSeNetv2(num_class=NUM_CLASSES, use_aux=False)  # no aux heads for inference
     elif args.model == "Enet":
-        model = ENet(NUM_CLASSES)
+        model = ENet(num_class=NUM_CLASSES)
     else:
         raise ValueError("Invalid model")
 
