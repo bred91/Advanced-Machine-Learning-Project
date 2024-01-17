@@ -80,7 +80,7 @@ def get_parser():
         help='coefficient to blend the mask with the image')
 
     # Loss
-    parser.add_argument('--loss_type', type=str, default=None, choices = ['ce', 'ohem'],
+    parser.add_argument('--loss_type', type=str, default=None, choices = ['ce', 'ohem', 'eiml', 'ln'],
         help='choose which loss you want to use')
     parser.add_argument('--class_weights', type=tuple, default=None, 
         help='class weights for cross entropy loss')

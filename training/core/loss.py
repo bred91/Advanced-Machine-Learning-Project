@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from isomaxplus import IsoMaxPlusLossSecondPart
 
 
 class OhemCELoss(nn.Module):
@@ -26,10 +27,14 @@ def get_loss_fn(config, device):
         weights = torch.Tensor(config.class_weights).to(device)
 
     if config.loss_type == 'ce':
+        # Cross Entropy
         print('Warning: reduction is None, loss will be summed.')
         criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_index, weight=weights)
     elif config.loss_type == 'ohem':
         criterion = OhemCELoss(thresh=config.ohem_thrs, ignore_index=config.ignore_index)  
+    elif config.kd_loss_type == 'eiml':
+        # Enhanced Isotropy Maximization Loss
+        criterion = IsoMaxPlusLossSecondPart()
 
     else:
         raise NotImplementedError(f"Unsupport loss type: {config.loss_type}")
