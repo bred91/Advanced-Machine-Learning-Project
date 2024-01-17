@@ -34,10 +34,10 @@ def get_loss_fn(config, device):
         criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_index, weight=weights)
     elif config.loss_type == 'ohem':
         criterion = OhemCELoss(thresh=config.ohem_thrs, ignore_index=config.ignore_index)  
-    elif config.kd_loss_type == 'eiml':
+    elif config.loss_type == 'eiml':
         # Enhanced Isotropy Maximization Loss
         criterion = IsoMaxPlusLossSecondPart()
-    elif config.kd_loss_type == 'ln':
+    elif config.loss_type == 'ln':
         # Logit Normalization
         criterion = LogitNormLoss()
     else:
