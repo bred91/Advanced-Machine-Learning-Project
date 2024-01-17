@@ -118,7 +118,7 @@ def main(args):
 
     iou_classes_str = []
     for i in range(iou_classes.size(0)):
-        iouStr = getColorEntry(iou_classes[i])+'{:0.2f}'.format(iou_classes[i]*100) + '\033[0m'
+        iouStr = getColorEntry(iou_classes[i])+'{:0.4f}'.format(iou_classes[i]*100) + '\033[0m'
         iou_classes_str.append(iouStr)
 
     print("---------------------------------------")
@@ -148,7 +148,7 @@ def main(args):
     if args.task == 3:
         print(iou_classes_str[19], "void")
     print("=======================================")
-    iouStr = getColorEntry(iouVal)+'{:0.2f}'.format(iouVal*100) + '\033[0m'
+    iouStr = getColorEntry(iouVal)+'{:0.4f}'.format(iouVal*100) + '\033[0m'
     print ("MEAN IoU: ", iouStr, "%")
 
 if __name__ == '__main__':
