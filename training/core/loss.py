@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from isomaxplus import IsoMaxPlusLossSecondPart
-
+from logitnorm import LogitNormLoss
 
 class OhemCELoss(nn.Module):
     def __init__(self, thresh, ignore_index=255):
@@ -35,7 +35,9 @@ def get_loss_fn(config, device):
     elif config.kd_loss_type == 'eiml':
         # Enhanced Isotropy Maximization Loss
         criterion = IsoMaxPlusLossSecondPart()
-
+    elif config.kd_loss_type == 'ln':
+        # Logit Normalization
+        criterion = LogitNormLoss()
     else:
         raise NotImplementedError(f"Unsupport loss type: {config.loss_type}")
         
