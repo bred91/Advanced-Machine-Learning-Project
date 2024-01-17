@@ -39,7 +39,7 @@ def get_loss_fn(config, device):
         criterion = IsoMaxPlusLossSecondPart()
     elif config.loss_type == 'ln':
         # Logit Normalization
-        criterion = LogitNormLoss()
+        criterion = LogitNormLoss(device)
     else:
         raise NotImplementedError(f"Unsupport loss type: {config.loss_type}")
         

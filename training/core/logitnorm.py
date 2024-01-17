@@ -46,9 +46,9 @@ class _ECELoss(nn.Module):
 
 class LogitNormLoss(nn.Module):
 
-    def __init__(self, t=1.0):
+    def __init__(self, device, t=1.0):
         super(LogitNormLoss, self).__init__()
-        #self.device = device
+        self.device = device
         self.t = t
 
     def forward(self, x, target):
