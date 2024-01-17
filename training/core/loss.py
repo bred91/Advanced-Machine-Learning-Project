@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from training.core.isomaxplus import IsoMaxPlusLossSecondPart
-from training.core.logitnorm import LogitNormLoss
+from core.isomaxplus import IsoMaxPlusLossSecondPart
+from core.logitnorm import LogitNormLoss
 
 
 class OhemCELoss(nn.Module):
