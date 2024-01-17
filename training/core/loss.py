@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from isomaxplus import IsoMaxPlusLossSecondPart
-from logitnorm import LogitNormLoss
+
+from training.core.isomaxplus import IsoMaxPlusLossSecondPart
+from training.core.logitnorm import LogitNormLoss
+
 
 class OhemCELoss(nn.Module):
     def __init__(self, thresh, ignore_index=255):

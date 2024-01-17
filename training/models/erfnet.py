@@ -7,9 +7,9 @@ Date:       2023/08/20
 
 import torch
 import torch.nn as nn
-from ..core.isomaxplus import IsoMaxPlusLossFirstPart
 from .modules import ConvBNAct, DeConvBNAct, Activation
 from .enet import InitialBlock as DownsamplerBlock
+from ..core.isomaxplus import IsoMaxPlusLossFirstPart
 
 
 class ERFNet(nn.Module):
