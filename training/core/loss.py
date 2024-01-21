@@ -33,25 +33,25 @@ def get_loss_fn(config, device):
         print('Warning: reduction is None, loss will be summed.')
         criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_index, weight=weights)
     elif config.loss_type == 'ohem':
-        criterion = OhemCELoss(thresh=config.ohem_thrs, ignore_index=config.ignore_index)  
+        criterion = OhemCELoss(thresh=config.ohem_thrs, ignore_index=config.ignore_index)
     elif config.loss_type == 'eiml':
         # Enhanced Isotropy Maximization Loss
         criterion = IsoMaxPlusLossSecondPart()
     elif config.loss_type == 'ln':
         # Logit Normalization
-        criterion = LogitNormLoss(device = device, ignore_index=config.ignore_index)
+        criterion = LogitNormLoss(device=device, ignore_index=config.ignore_index)
     else:
         raise NotImplementedError(f"Unsupport loss type: {config.loss_type}")
-        
+
     return criterion
-    
-    
+
+
 def kd_loss_fn(config, outputs, outputsT):
     if config.kd_loss_type == 'kl_div':
-        lossT = F.kl_div(F.log_softmax(outputs/config.kd_temperature, dim=1),
-                    F.softmax(outputsT.detach()/config.kd_temperature, dim=1)) * config.kd_temperature ** 2
-                    
+        lossT = F.kl_div(F.log_softmax(outputs / config.kd_temperature, dim=1),
+                         F.softmax(outputsT.detach() / config.kd_temperature, dim=1)) * config.kd_temperature ** 2
+
     elif config.kd_loss_type == 'mse':
         lossT = F.mse_loss(outputs, outputsT.detach())
-        
+
     return lossT
