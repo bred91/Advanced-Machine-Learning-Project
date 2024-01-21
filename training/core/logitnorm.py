@@ -46,12 +46,13 @@ class _ECELoss(nn.Module):
 
 class LogitNormLoss(nn.Module):
 
-    def __init__(self, device, t=1.0):
+    def __init__(self, device, ignore_index, t=1.0):
         super(LogitNormLoss, self).__init__()
         self.device = device
         self.t = t
+        self.ignore_index = ignore_index
 
     def forward(self, x, target):
         norms = torch.norm(x, p=2, dim=-1, keepdim=True) + 1e-7
         logit_norm = torch.div(x, norms) / self.t
-        return F.cross_entropy(logit_norm, target)
+        return F.cross_entropy(logit_norm, target, ignore_index=self.ignore_index)
