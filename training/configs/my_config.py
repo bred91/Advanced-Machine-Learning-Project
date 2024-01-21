@@ -7,7 +7,7 @@ class MyConfig(BaseConfig):
         # Dataset
         self.dataset = 'cityscapes'
         self.data_root = '/content/cityscapes/Cityscape'
-        self.num_class = 20
+        self.num_class = 19
         
         # Model
         self.model = 'erfnet'
