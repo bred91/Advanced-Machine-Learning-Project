@@ -32,7 +32,7 @@ class ERFNet(nn.Module):
 
         if EIML:
             # Enhanced Isotropy Maximization Loss
-            self.layer23 = IsoMaxPlusLossFirstPart(384, num_class)
+            self.layer23 = IsoMaxPlusLossFirstPart(16, num_class)
         else:
             self.layer23 = DeConvBNAct(16, num_class, act_type=act_type)
 
