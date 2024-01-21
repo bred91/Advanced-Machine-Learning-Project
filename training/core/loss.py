@@ -31,14 +31,19 @@ def get_loss_fn(config, device):
     if config.loss_type == 'ce':
         # Cross Entropy
         print('Warning: reduction is None, loss will be summed.')
+        print("Cross Entropy Loss")
         criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_index, weight=weights)
     elif config.loss_type == 'ohem':
+        # Online Hard Example Mining
+        print("OHEM Loss")
         criterion = OhemCELoss(thresh=config.ohem_thrs, ignore_index=config.ignore_index)
     elif config.loss_type == 'eiml':
         # Enhanced Isotropy Maximization Loss
+        print("Extended Isotropy Maximization Loss")
         criterion = IsoMaxPlusLossSecondPart()
     elif config.loss_type == 'ln':
         # Logit Normalization
+        print("Logit Normalization Loss")
         criterion = LogitNormLoss(device=device, ignore_index=config.ignore_index)
     else:
         raise NotImplementedError(f"Unsupport loss type: {config.loss_type}")
