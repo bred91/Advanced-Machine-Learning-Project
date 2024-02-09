@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from core.isomaxplus import IsoMaxPlusLossSecondPart
-from core.logitnorm import LogitNormLoss
+from training.core.isomaxplus import IsoMaxPlusLossSecondPart
+from training.core.logitnorm import LogitNormLoss
+from training.core.focal_loss import FocalLoss
 
 
 class OhemCELoss(nn.Module):
@@ -45,6 +46,10 @@ def get_loss_fn(config, device):
         # Logit Normalization
         print("Logit Normalization Loss")
         criterion = LogitNormLoss(device=device, ignore_index=config.ignore_index)
+    elif config.loss_type == 'fl':
+        # Focal Loss
+        print("Focal Loss")
+        criterion = FocalLoss()
     else:
         raise NotImplementedError(f"Unsupport loss type: {config.loss_type}")
 
