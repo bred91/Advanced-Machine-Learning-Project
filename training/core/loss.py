@@ -2,9 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from training.core.cross_entropy_loss import CrossEntropyLoss
 from training.core.isomaxplus import IsoMaxPlusLossSecondPart
+from training.core.jaccard_loss import JaccardLoss
 from training.core.logitnorm import LogitNormLoss
 from training.core.focal_loss import FocalLoss
+from training.core.joint_losses import *
 
 
 class OhemCELoss(nn.Module):
@@ -33,7 +36,7 @@ def get_loss_fn(config, device):
         # Cross Entropy
         print('Warning: reduction is None, loss will be summed.')
         print("Cross Entropy Loss")
-        criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_index, weight=weights)
+        criterion = CrossEntropyLoss(CrossEntropyLoss.Parameters(ignore_index=config.ignore_index, weight=weights))
     elif config.loss_type == 'ohem':
         # Online Hard Example Mining
         print("OHEM Loss")
@@ -43,13 +46,33 @@ def get_loss_fn(config, device):
         print("Extended Isotropy Maximization Loss")
         criterion = IsoMaxPlusLossSecondPart()
     elif config.loss_type == 'ln':
-        # Logit Normalization
+        # Logit Normalization Loss
         print("Logit Normalization Loss")
-        criterion = LogitNormLoss(device=device, ignore_index=config.ignore_index)
+        criterion = LogitNormLoss(LogitNormLoss.Parameters(ignore_index=config.ignore_index))
     elif config.loss_type == 'fl':
         # Focal Loss
         print("Focal Loss")
-        criterion = FocalLoss()
+        criterion = FocalLoss(FocalLoss.Parameters(weight=weights))
+    elif config.loss_type == 'jl':
+        # Jaccard Loss
+        print("Jaccard Loss")
+        criterion = JaccardLoss(JaccardLoss.Parameters(weight=weights))
+    elif config.loss_type == 'joint-ln-fl':
+        # Joint Logit Normaliztion & Focal Loss
+        print("Joint Logit Normaliztion & Focal Loss")
+        criterion = Joint_LnFl(LogitNormLoss.Parameters(ignore_index=config.ignore_index), FocalLoss.Parameters(weight=weights))
+    elif config.loss_type == 'joint-ln-ce':
+        # Joint Logit Normaliztion & Cross Entropy
+        print("Joint Logit Normaliztion & Cross Entropy")
+        criterion = Joint_LnCe(LogitNormLoss.Parameters(ignore_index=config.ignore_index), CrossEntropyLoss.Parameters(ignore_index=config.ignore_index, weight=weights))
+    elif config.loss_type == 'joint-jl-fl':
+        # Joint Jaccard Loss & Focal Loss
+        print("Joint Jaccard Loss & Focal Loss")
+        criterion = Joint_JlFl(JaccardLoss.Parameters(weight=weights), FocalLoss.Parameters(weight=weights))
+    elif config.loss_type == 'joint-jl-ce':
+        # Joint Jaccard Loss & Cross Entropy
+        print("Joint Jaccard Loss & Cross Entropy")
+        criterion = Joint_JlCe(JaccardLoss.Parameters(weight=weights), CrossEntropyLoss.Parameters(ignore_index=config.ignore_index, weight=weights))
     else:
         raise NotImplementedError(f"Unsupport loss type: {config.loss_type}")
 

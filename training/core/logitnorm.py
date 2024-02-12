@@ -1,3 +1,6 @@
+from dataclasses import dataclass, field
+from typing import Optional
+
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
@@ -46,11 +49,15 @@ class _ECELoss(nn.Module):
 
 class LogitNormLoss(nn.Module):
 
-    def __init__(self, device, ignore_index, t=1.0):
+    @dataclass
+    class Parameters:
+        ignore_index: int
+        t: Optional[float] = field(default=1.0)
+
+    def __init__(self, parameters: Parameters):
         super(LogitNormLoss, self).__init__()
-        self.device = device
-        self.t = t
-        self.ignore_index = ignore_index
+        self.t = parameters.t
+        self.ignore_index = parameters.ignore_index
 
     def forward(self, x, target):
         norms = torch.norm(x, p=2, dim=-1, keepdim=True) + 1e-7

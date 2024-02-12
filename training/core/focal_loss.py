@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from typing import Optional
 
 import torch.nn as nn
@@ -7,14 +8,22 @@ from torchvision import ops
 
 
 class FocalLoss(nn.Module):
+    @dataclass
+    class Parameters:
+        alpha: Optional[float] = field(default=0.25)
+        gamma: float = field(default=2.0)
+        reduction: str = field(default="none")
+        weight: Optional[Tensor] = field(default=None)
+
+
     def __init__(
-            self, alpha: Optional[float], gamma: float = 2.0, reduction: str = "none", weight: Optional[Tensor] = None,
+            self, parameter: Parameters
     ) -> None:
         super().__init__()
-        self.alpha: Optional[float] = alpha
-        self.gamma: float = gamma
-        self.reduction: str = reduction
-        self.weight: Optional[Tensor] = weight
+        self.alpha: Optional[float] = parameter.alpha
+        self.gamma: float = parameter.gamma
+        self.reduction: str = parameter.reduction
+        self.weight: Optional[Tensor] = parameter.weight
 
     def forward(self, pred: Tensor, target: Tensor) -> Tensor:
         return ops.sigmoid_focal_loss(pred, target, self.alpha, self.gamma, self.reduction)
