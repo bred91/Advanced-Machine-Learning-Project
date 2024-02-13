@@ -2,12 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from training.core.cross_entropy_loss import CrossEntropyLoss
-from training.core.isomaxplus import IsoMaxPlusLossSecondPart
-from training.core.jaccard_loss import JaccardLoss
-from training.core.logitnorm import LogitNormLoss
-from training.core.focal_loss import FocalLoss
-from training.core.joint_losses import *
+from core.cross_entropy_loss import CrossEntropyLoss
+from core.isomaxplus import IsoMaxPlusLossSecondPart
+from core.jaccard_loss import JaccardLoss
+from core.logitnorm import LogitNormLoss
+from core.focal_loss import FocalLoss
+from core.joint_losses import *
 
 
 class OhemCELoss(nn.Module):

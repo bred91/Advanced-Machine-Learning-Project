@@ -17,11 +17,11 @@ class JaccardLoss(nn.Module):
 
     def forward(self, outputs, targets):
         if self.weight is not None:
-            outputs *= self.weight.view(1, 20, 1, 1)
+            outputs *= self.weight.view(1, 19, 1, 1)
         outputs = outputs.reshape(outputs.size()[0], -1)
         targets = (torch
                    .unsqueeze(targets, dim=1)
-                   .expand(-1, 20, -1, -1)
+                   .expand(-1, 19, -1, -1)
                    .reshape(targets.size()[0], -1))
         jaccard = ((torch.sum(torch.min(outputs, targets), dim=1, keepdim=True) + 1e-8) /
                    (torch.sum(torch.max(outputs, targets), dim=1, keepdim=True) + 1e-8))

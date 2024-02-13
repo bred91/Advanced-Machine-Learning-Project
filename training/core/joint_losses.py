@@ -1,10 +1,10 @@
 import torch.nn as nn
 import torch
 
-from training.core.cross_entropy_loss import CrossEntropyLoss
-from training.core.focal_loss import FocalLoss
-from training.core.jaccard_loss import JaccardLoss
-from training.core.logitnorm import LogitNormLoss
+from core.cross_entropy_loss import CrossEntropyLoss
+from core.focal_loss import FocalLoss
+from core.jaccard_loss import JaccardLoss
+from core.logitnorm import LogitNormLoss
 
 
 def _forward(outputs, targets, l1: nn.Module, l2: nn.Module):
