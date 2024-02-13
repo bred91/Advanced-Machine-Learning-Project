@@ -11,6 +11,7 @@ from torchvision import ops
 class FocalLoss(nn.Module):
     @dataclass
     class Parameters:
+        ignore_index: int
         alpha: Optional[float] = field(default=0.25)
         gamma: float = field(default=2.0)
         reduction: str = field(default="none")
@@ -21,24 +22,15 @@ class FocalLoss(nn.Module):
             self, parameter: Parameters
     ) -> None:
         super().__init__()
+        self.ignore_index: int = parameter.ignore_index
         self.alpha: Optional[float] = parameter.alpha
         self.gamma: float = parameter.gamma
         self.reduction: str = parameter.reduction
         self.weight: Optional[Tensor] = parameter.weight
 
     def forward(self, pred: Tensor, target: Tensor) -> Tensor:
-        target = torch.unsqueeze(target, dim=1).expand(-1, 19, -1, -1)
-        return ops.sigmoid_focal_loss(pred, target, self.alpha, self.gamma, self.reduction)
-        # # -log(p)
-        # ce_loss = F.cross_entropy(pred, target, reduction=self.reduction, weight=self.weight)
-        # p = torch.exp(-ce_loss)
-        # focal_loss = (1-p)**self.gamma * ce_loss
-        # if self.reduction == "none":
-        #     loss = focal_loss
-        # elif self.reduction == "mean":
-        #     loss = torch.mean(focal_loss)
-        # elif self.reduction == "sum":
-        #     loss = torch.sum(focal_loss)
-        # else:
-        #     raise NotImplementedError(f"Invalid reduction mode: {self.reduction}")
-        # return loss
+        logpt = F.log_softmax(pred, dim=1)
+        pt = torch.exp(logpt)
+        logpt = (1 - pt) ** self.gamma * logpt
+        loss = F.nll_loss(logpt, target, self.weight, ignore_index=self.ignore_index, reduction=self.reduction)
+        return loss

@@ -52,7 +52,7 @@ def get_loss_fn(config, device):
     elif config.loss_type == 'fl':
         # Focal Loss
         print("Focal Loss")
-        criterion = FocalLoss(FocalLoss.Parameters(weight=weights))
+        criterion = FocalLoss(FocalLoss.Parameters(ignore_index=config.ignore_index, weight=weights))
     elif config.loss_type == 'jl':
         # Jaccard Loss
         print("Jaccard Loss")
@@ -60,7 +60,7 @@ def get_loss_fn(config, device):
     elif config.loss_type == 'joint-ln-fl':
         # Joint Logit Normaliztion & Focal Loss
         print("Joint Logit Normaliztion & Focal Loss")
-        criterion = Joint_LnFl(LogitNormLoss.Parameters(ignore_index=config.ignore_index), FocalLoss.Parameters(weight=weights))
+        criterion = Joint_LnFl(LogitNormLoss.Parameters(ignore_index=config.ignore_index), FocalLoss.Parameters(ignore_index=config.ignore_index, weight=weights))
     elif config.loss_type == 'joint-ln-ce':
         # Joint Logit Normaliztion & Cross Entropy
         print("Joint Logit Normaliztion & Cross Entropy")
@@ -68,7 +68,7 @@ def get_loss_fn(config, device):
     elif config.loss_type == 'joint-jl-fl':
         # Joint Jaccard Loss & Focal Loss
         print("Joint Jaccard Loss & Focal Loss")
-        criterion = Joint_JlFl(JaccardLoss.Parameters(weight=weights), FocalLoss.Parameters(weight=weights))
+        criterion = Joint_JlFl(JaccardLoss.Parameters(weight=weights), FocalLoss.Parameters(ignore_index=config.ignore_index, weight=weights))
     elif config.loss_type == 'joint-jl-ce':
         # Joint Jaccard Loss & Cross Entropy
         print("Joint Jaccard Loss & Cross Entropy")
