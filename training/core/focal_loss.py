@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
+import torch
 import torch.nn as nn
 from torch import Tensor
 import torch.nn.functional as F
@@ -26,6 +27,7 @@ class FocalLoss(nn.Module):
         self.weight: Optional[Tensor] = parameter.weight
 
     def forward(self, pred: Tensor, target: Tensor) -> Tensor:
+        target = torch.unsqueeze(target, dim=1).expand(-1, 19, -1, -1)
         return ops.sigmoid_focal_loss(pred, target, self.alpha, self.gamma, self.reduction)
         # # -log(p)
         # ce_loss = F.cross_entropy(pred, target, reduction=self.reduction, weight=self.weight)
