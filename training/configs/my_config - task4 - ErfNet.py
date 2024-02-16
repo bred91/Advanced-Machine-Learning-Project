@@ -15,7 +15,7 @@ class MyConfig(BaseConfig):
         # Training
         self.total_epoch = 30 #20
         self.train_bs = 8
-        self.loss_type = 'eiml' # ohem
+        self.loss_type = 'ln' # ohem
         self.optimizer_type = 'adam'
         self.logger_name = 'seg_trainer'
         self.use_aux = False
