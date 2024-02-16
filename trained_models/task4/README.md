@@ -4,7 +4,8 @@ Here you can find the trained models with the several Losses for the extension B
 
 Here a list of the Loss used:
 - Logit Normalization 
-- Jaccard 
+- Jaccard
+- Focal Loss
 - Jointly: Logit Normalization and Cross Entropy
 - Jointly: Jaccard and Cross Entropy
 - Jointly: Logit Normalization and Focal Loss
