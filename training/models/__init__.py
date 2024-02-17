@@ -69,11 +69,7 @@ def get_model(config):
         if config.model in aux_models:
             model = model_hub[config.model](num_class=config.num_class, use_aux=config.use_aux)
         else:
-            if config.loss_type == 'eiml' and config.model == 'erfnet':
-                print("HELLOOOOO")
-                model = model_hub[config.model](num_class=config.num_class, EIML=True)
-            else:
-                model = model_hub[config.model](num_class=config.num_class)
+            model = model_hub[config.model](num_class=config.num_class)
 
     else:
         raise NotImplementedError(f"Unsupport model type: {config.model}")

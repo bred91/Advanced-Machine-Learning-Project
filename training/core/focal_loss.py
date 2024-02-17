@@ -5,7 +5,6 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 import torch.nn.functional as F
-from torchvision import ops
 
 
 class FocalLoss(nn.Module):
@@ -14,7 +13,7 @@ class FocalLoss(nn.Module):
         ignore_index: int
         alpha: Optional[float] = field(default=0.25)
         gamma: float = field(default=2.0)
-        reduction: str = field(default="none")
+        reduction: str = field(default="mean")
         weight: Optional[Tensor] = field(default=None)
 
 

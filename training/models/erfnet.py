@@ -13,7 +13,7 @@ from core.isomaxplus import IsoMaxPlusLossFirstPart
 
 
 class ERFNet(nn.Module):
-    def __init__(self, num_class=1, n_channel=3, act_type='relu', EIML=False):
+    def __init__(self, num_class=1, n_channel=3, act_type='relu'):
         super(ERFNet, self).__init__()
         self.layer1 = DownsamplerBlock(n_channel, 16, act_type=act_type)
 
@@ -29,12 +29,7 @@ class ERFNet(nn.Module):
 
         self.layer20 = DeConvBNAct(64, 16, act_type=act_type)
         self.layer21_22 = build_blocks(NonBt1DBlock, 16, 2, act_type=act_type)
-
-        if EIML:
-            # Enhanced Isotropy Maximization Loss
-            self.layer23 = IsoMaxPlusLossFirstPart(384, num_class)
-        else:
-            self.layer23 = DeConvBNAct(16, num_class, act_type=act_type)
+        self.layer23 = DeConvBNAct(16, num_class, act_type=act_type)
 
     def forward(self, x):
         x = self.layer1(x)

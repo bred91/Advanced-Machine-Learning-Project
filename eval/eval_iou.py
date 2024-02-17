@@ -86,11 +86,7 @@ def main(args):
     if(not os.path.exists(args.datadir)):
         print ("Error: datadir could not be loaded")
 
-    if args.task == 3:
-        # if ignoreIndex is larger than nClasses, consider no ignoreIndex
-        ignore_index = 999  # we want to evaluate all labels
-    else:
-        ignore_index = 19   # we want to ignore label 19
+    ignore_index = 19   # we want to ignore label 19
 
     city = cityscapes(args.datadir, input_transform_cityscapes, target_transform_cityscapes, subset=args.subset)
     loader = DataLoader(city, num_workers=args.num_workers, batch_size=args.batch_size, shuffle=False)
@@ -145,8 +141,6 @@ def main(args):
     print(iou_classes_str[16], "train")
     print(iou_classes_str[17], "motorcycle")
     print(iou_classes_str[18], "bicycle")
-    if args.task == 3:
-        print(iou_classes_str[19], "void")
     print("=======================================")
     iouStr = getColorEntry(iouVal)+'{:0.4f}'.format(iouVal*100) + '\033[0m'
     print ("MEAN IoU: ", iouStr, "%")

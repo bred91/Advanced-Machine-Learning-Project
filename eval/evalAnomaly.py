@@ -60,7 +60,7 @@ def main():
     print("Dataset: ", args.input[0].replace("\\", "/").split("/")[args.input[0].replace("\\", "/").split("/").index("Validation_Dataset") + 1])
 
     # input validation
-    assert (args.task in [2, 3]), "Invalid task"
+    assert (args.task in [2, 3, 4]), "Invalid task"
     assert (args.method in ["MaxLogit", "MSP", "MaxEntropy"]), "Invalid method"
     assert (args.model in ["Erfnet", "BisenetV2", "Enet"]), "Invalid model"
     if args.withT != None:
@@ -151,6 +151,8 @@ def main():
                 # anomaly_result = - torch.div(torch.sum(soft_probs * log_soft_probs, dim=0), np.log(NUM_CLASSES)).cpu().numpy()
         elif args.task == 3:
             anomaly_result = result.squeeze(0).data.cpu().numpy()[19, :, :]
+        elif args.task == 4:
+            anomaly_result = - torch.max(result.squeeze(0), dim=0)[0].cpu().numpy()
 
         pathGT = path.replace("images", "labels_masks")                
         if "RoadObsticle21" in pathGT:
