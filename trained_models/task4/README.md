@@ -6,7 +6,7 @@ Here a list of the Loss used:
 - Logit Normalization (ln)
 - Jaccard (jl)
 - Focal Loss (fl)
-- Jointly: Logit Normalization and Cross Entropy
-- Jointly: Jaccard and Cross Entropy
-- Jointly: Logit Normalization and Focal Loss
-- Jointly: Jaccard and Focal Loss
+- Jointly: Logit Normalization and Cross Entropy (ln ce)
+- Jointly: Jaccard and Cross Entropy (jl ce)
+- Jointly: Logit Normalization and Focal Loss (ln fl)
+- Jointly: Jaccard and Focal Loss (jl fl)
