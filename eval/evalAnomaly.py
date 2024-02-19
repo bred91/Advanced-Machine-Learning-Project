@@ -226,8 +226,8 @@ def main():
     prc_auc = average_precision_score(val_label, val_out)
     fpr = fpr_at_95_tpr(val_out, val_label)
 
-    print(f'AUPRC score: {prc_auc * 100.0}')
-    print(f'FPR@TPR95: {fpr * 100.0}')
+    print(f'AUPRC score: {round(prc_auc,5) * 100.0}')
+    print(f'FPR@TPR95: {round(fpr,5) * 100.0}')
 
     file.write(('    AUPRC score:' + str(round(prc_auc,5) * 100.0) + '   FPR@TPR95:' + str(round(fpr,5) * 100.0)))
     file.close()
