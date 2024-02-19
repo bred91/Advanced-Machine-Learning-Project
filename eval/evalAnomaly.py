@@ -117,7 +117,8 @@ def main():
     def task4_load_my_state_dict(model, state_dict):
         own_state = model.state_dict()
         for name, param in state_dict["state_dict"].items():
-            own_state["module." + name].copy_(param)
+            if 'seg_head' not in name:
+                own_state["module." + name].copy_(param)
         return model
 
     if args.task == 4 or args.task == 3:
