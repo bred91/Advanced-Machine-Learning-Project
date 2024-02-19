@@ -92,7 +92,7 @@ def main():
         else:
             model = ERFNet(num_classes)
     elif args.model == "BisenetV2":
-        model = BiSeNetv2(num_class=num_classes, use_aux=False)  # no aux heads for inference
+        model = BiSeNetv2(num_class=num_classes)
     elif args.model == "Enet":
         model = ENet(num_classes)
     else:
@@ -117,8 +117,7 @@ def main():
     def task4_load_my_state_dict(model, state_dict):
         own_state = model.state_dict()
         for name, param in state_dict["state_dict"].items():
-            if 'seg_head' not in name:
-                own_state["module." + name].copy_(param)
+            own_state["module." + name].copy_(param)
         return model
 
     if args.task == 4 or args.task == 3:
