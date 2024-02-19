@@ -19,7 +19,8 @@ from torchvision.transforms import Compose, CenterCrop, Normalize, Resize
 from torchvision.transforms import ToTensor, ToPILImage
 
 from dataset import cityscapes
-from erfnet2 import ERFNet
+from erfnet2 import ERFNet as ERFNet_original
+from erfnet import ERFNet
 from bisenetv2 import BiSeNetv2
 from enet import ENet
 from transform import Relabel, ToLabel, Colorize
@@ -52,7 +53,10 @@ def main(args):
 
     # model management
     if args.model == "Erfnet":
-        model = ERFNet(NUM_CLASSES)
+        if args.task == 2:
+            model = ERFNet_original(NUM_CLASSES)
+        else:
+            model = ERFNet(NUM_CLASSES)
     elif args.model == "BisenetV2":
         model = BiSeNetv2(num_class=NUM_CLASSES, use_aux=False)  # no aux heads for inference
     elif args.model == "Enet":
@@ -77,7 +81,17 @@ def main(args):
                 own_state[name].copy_(param)
         return model
 
-    model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
+    def task4_load_my_state_dict(model, state_dict):
+        own_state = model.state_dict()
+        for name, param in state_dict["state_dict"].items():
+            if 'seg_head' not in name:
+                own_state["module." + name].copy_(param)
+        return model
+
+    if args.task == 4 or args.task == 3:
+        model = task4_load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
+    else:
+        model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
 
     print ("Model and weights LOADED successfully")
 
