@@ -1,153 +1,80 @@
-# ERFNET full network definition for Pytorch
-# Sept 2017
-# Eduardo Romera
-#######################
+"""
+Paper:      ERFNet: Efficient Residual Factorized ConvNet for Real-Time Semantic Segmentation
+Url:        https://ieeexplore.ieee.org/document/8063438
+Create by:  zh320
+Date:       2023/08/20
+"""
 
 import torch
 import torch.nn as nn
-import torch.nn.init as init
-import torch.nn.functional as F
-
-
-class DownsamplerBlock (nn.Module):
-    def __init__(self, ninput, noutput):
-        super().__init__()
-
-        self.conv = nn.Conv2d(ninput, noutput-ninput, (3, 3), stride=2, padding=1, bias=True)
-        self.pool = nn.MaxPool2d(2, stride=2)
-        self.bn = nn.BatchNorm2d(noutput, eps=1e-3)
-
-    def forward(self, input):
-        output = torch.cat([self.conv(input), self.pool(input)], 1)
-        output = self.bn(output)
-        return F.relu(output)
-    
-
-class non_bottleneck_1d (nn.Module):
-    def __init__(self, chann, dropprob, dilated):        
-        super().__init__()
-
-        self.conv3x1_1 = nn.Conv2d(chann, chann, (3, 1), stride=1, padding=(1,0), bias=True)
-
-        self.conv1x3_1 = nn.Conv2d(chann, chann, (1,3), stride=1, padding=(0,1), bias=True)
-
-        self.bn1 = nn.BatchNorm2d(chann, eps=1e-03)
-
-        self.conv3x1_2 = nn.Conv2d(chann, chann, (3, 1), stride=1, padding=(1*dilated,0), bias=True, dilation = (dilated,1))
-
-        self.conv1x3_2 = nn.Conv2d(chann, chann, (1,3), stride=1, padding=(0,1*dilated), bias=True, dilation = (1, dilated))
-
-        self.bn2 = nn.BatchNorm2d(chann, eps=1e-03)
-
-        self.dropout = nn.Dropout2d(dropprob)
-        
-
-    def forward(self, input):
-
-        output = self.conv3x1_1(input)
-        output = F.relu(output)
-        output = self.conv1x3_1(output)
-        output = self.bn1(output)
-        output = F.relu(output)
-
-        output = self.conv3x1_2(output)
-        output = F.relu(output)
-        output = self.conv1x3_2(output)
-        output = self.bn2(output)
-
-        if (self.dropout.p != 0):
-            output = self.dropout(output)
-        
-        return F.relu(output+input)    #+input = identity (residual connection)
-
-
-class Encoder(nn.Module):
-    def __init__(self, num_classes):
-        super().__init__()
-        self.initial_block = DownsamplerBlock(3,16)
-
-        self.layers = nn.ModuleList()
-
-        self.layers.append(DownsamplerBlock(16,64))
-
-        for x in range(0, 5):    #5 times
-           self.layers.append(non_bottleneck_1d(64, 0.1, 1))  
-
-        self.layers.append(DownsamplerBlock(64,128))
-
-        for x in range(0, 2):    #2 times
-            self.layers.append(non_bottleneck_1d(128, 0.1, 2))
-            self.layers.append(non_bottleneck_1d(128, 0.1, 4))
-            self.layers.append(non_bottleneck_1d(128, 0.1, 8))
-            self.layers.append(non_bottleneck_1d(128, 0.1, 16))
-
-        #only for encoder mode:
-        self.output_conv = nn.Conv2d(128, num_classes, 1, stride=1, padding=0, bias=True)
-
-    def forward(self, input, predict=False):
-        output = self.initial_block(input)
-
-        for layer in self.layers:
-            output = layer(output)
-
-        if predict:
-            output = self.output_conv(output)
-
-        return output
-
-
-class UpsamplerBlock (nn.Module):
-    def __init__(self, ninput, noutput):
-        super().__init__()
-        self.conv = nn.ConvTranspose2d(ninput, noutput, 3, stride=2, padding=1, output_padding=1, bias=True)
-        self.bn = nn.BatchNorm2d(noutput, eps=1e-3)
-
-    def forward(self, input):
-        output = self.conv(input)
-        output = self.bn(output)
-        return F.relu(output)
-
-class Decoder (nn.Module):
-    def __init__(self, num_classes):
-        super().__init__()
-
-        self.layers = nn.ModuleList()
-
-        self.layers.append(UpsamplerBlock(128,64))
-        self.layers.append(non_bottleneck_1d(64, 0, 1))
-        self.layers.append(non_bottleneck_1d(64, 0, 1))
-
-        self.layers.append(UpsamplerBlock(64,16))
-        self.layers.append(non_bottleneck_1d(16, 0, 1))
-        self.layers.append(non_bottleneck_1d(16, 0, 1))
-
-        self.output_conv = nn.ConvTranspose2d( 16, num_classes, 2, stride=2, padding=0, output_padding=0, bias=True)
-
-    def forward(self, input):
-        output = input
-
-        for layer in self.layers:
-            output = layer(output)
-
-        output = self.output_conv(output)
-
-        return output
+from modules import ConvBNAct, DeConvBNAct, Activation
+from enet import InitialBlock as DownsamplerBlock
 
 
 class ERFNet(nn.Module):
-    def __init__(self, num_classes, encoder=None):  #use encoder to pass pretrained encoder
-        super().__init__()
+    def __init__(self, num_class=1, n_channel=3, act_type='relu'):
+        super(ERFNet, self).__init__()
+        self.layer1 = DownsamplerBlock(n_channel, 16, act_type=act_type)
 
-        if (encoder == None):
-            self.encoder = Encoder(num_classes)
-        else:
-            self.encoder = encoder
-        self.decoder = Decoder(num_classes)
+        self.layer2 = DownsamplerBlock(16, 64, act_type=act_type)
+        self.layer3_7 = build_blocks(NonBt1DBlock, 64, 5, act_type=act_type)
+        
+        self.layer8 = DownsamplerBlock(64, 128, act_type=act_type)
+        self.layer9_16 = build_blocks(NonBt1DBlock, 128, 8, 
+                                        dilations=[2,4,8,16,2,4,8,16], act_type=act_type)
+        
+        self.layer17 = DeConvBNAct(128, 64, act_type=act_type)
+        self.layer18_19 = build_blocks(NonBt1DBlock, 64, 2, act_type=act_type)
 
-    def forward(self, input, only_encode=False):
-        if only_encode:
-            return self.encoder.forward(input, predict=True)
-        else:
-            output = self.encoder(input)    #predict=False by default
-            return self.decoder.forward(output)
+        self.layer20 = DeConvBNAct(64, 16, act_type=act_type)
+        self.layer21_22 = build_blocks(NonBt1DBlock, 16, 2, act_type=act_type)
+        self.layer23 = DeConvBNAct(16, num_class, act_type=act_type)
 
+    def forward(self, x):
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3_7(x)
+        x = self.layer8(x)
+        x = self.layer9_16(x)
+        x = self.layer17(x)
+        x = self.layer18_19(x)
+        x = self.layer20(x)
+        x = self.layer21_22(x)
+        x = self.layer23(x)
+        return x
+
+
+def build_blocks(block, channels, num_block, dilations=[], act_type='relu'):
+    if len(dilations) == 0:
+        dilations = [1 for _ in range(num_block)]
+    else:
+        if len(dilations) != num_block:
+            raise ValueError(f'Number of dilation should be equal to number of blocks')
+
+    layers = []
+    for i in range(num_block):
+        layers.append(block(channels, dilation=dilations[i], act_type=act_type))
+    return  nn.Sequential(*layers)
+
+
+class NonBt1DBlock(nn.Module):
+    def __init__(self, channels, dilation=1, act_type='relu'):
+        super(NonBt1DBlock, self).__init__()
+        self.conv = nn.Sequential(
+                                ConvBNAct(channels, channels, (3, 1), inplace=True),
+                                ConvBNAct(channels, channels, (1, 3), inplace=True),
+                                ConvBNAct(channels, channels, (3, 1), dilation=dilation, inplace=True),
+                                nn.Conv2d(channels, channels, (1, 3), dilation=dilation, 
+                                            padding=(0, dilation), bias=False)
+                            )
+        self.bn_act = nn.Sequential(
+                                nn.BatchNorm2d(channels),
+                                Activation(act_type, inplace=True)
+                            )
+
+    def forward(self, x):
+        residual = x
+        x = self.conv(x)
+        x += residual
+        x = self.bn_act(x)
+        return x

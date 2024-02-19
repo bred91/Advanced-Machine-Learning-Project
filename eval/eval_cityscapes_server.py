@@ -17,7 +17,7 @@ from torchvision.transforms import Compose, CenterCrop, Normalize, Resize
 from torchvision.transforms import ToTensor, ToPILImage
 
 from dataset import cityscapes
-from erfnet import ERFNet
+from erfnet2 import ERFNet
 from transform import Relabel, ToLabel, Colorize
 
 
@@ -131,7 +131,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--loadDir',default="../trained_models/")
     parser.add_argument('--loadWeights', default="erfnet_pretrained.pth")
-    parser.add_argument('--loadModel', default="erfnet.py")
+    parser.add_argument('--loadModel', default="erfnet2.py")
     parser.add_argument('--subset', default="val")  #can be val, test, train, demoSequence
     parser.add_argument('--datadir', default=os.getenv("HOME") + "/datasets/cityscapes/")
     parser.add_argument('--num-workers', type=int, default=4)

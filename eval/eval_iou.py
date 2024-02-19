@@ -19,7 +19,7 @@ from torchvision.transforms import Compose, CenterCrop, Normalize, Resize
 from torchvision.transforms import ToTensor, ToPILImage
 
 from dataset import cityscapes
-from erfnet import ERFNet
+from erfnet2 import ERFNet
 from bisenetv2 import BiSeNetv2
 from enet import ENet
 from transform import Relabel, ToLabel, Colorize
@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--loadDir',default="../")
     parser.add_argument('--loadWeights', default="trained_models/erfnet_pretrained.pth")
-    parser.add_argument('--loadModel', default="eval/erfnet.py")
+    parser.add_argument('--loadModel', default="eval/erfnet2.py")
     parser.add_argument('--subset', default="val")  #can be val or train (must have labels)
     parser.add_argument('--datadir', default="/home/shyam/ViT-Adapter/segmentation/data/cityscapes/")
     parser.add_argument('--num-workers', type=int, default=4)
