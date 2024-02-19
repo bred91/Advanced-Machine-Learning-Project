@@ -22,8 +22,8 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 
 NUM_CHANNELS = 3
-NUM_CLASSES = 19
-NUM_CLASSES_TASK3 = 20
+NUM_CLASSES_TASK4 = 19
+NUM_CLASSES = 20
 # gpu training specific
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
@@ -80,8 +80,8 @@ def main():
     print("Loading model: " + modelpath)
     print("Loading weights: " + weightspath)
 
-    if args.task == 3:
-        num_classes = NUM_CLASSES_TASK3
+    if args.task == 4:
+        num_classes = NUM_CLASSES_TASK4
     else:
         num_classes = NUM_CLASSES
 
@@ -226,10 +226,10 @@ def main():
     prc_auc = average_precision_score(val_label, val_out)
     fpr = fpr_at_95_tpr(val_out, val_label)
 
-    print(f'AUPRC score: {round(prc_auc,5) * 100.0}')
-    print(f'FPR@TPR95: {round(fpr,5) * 100.0}')
+    print(f'AUPRC score: {prc_auc * 100.0}')
+    print(f'FPR@TPR95: {fpr * 100.0}')
 
-    file.write(('    AUPRC score:' + str(round(prc_auc,5) * 100.0) + '   FPR@TPR95:' + str(round(fpr,5) * 100.0)))
+    file.write(('    AUPRC score:' + str(prc_auc * 100.0) + '   FPR@TPR95:' + str(fpr* 100.0)))
     file.close()
 
 
