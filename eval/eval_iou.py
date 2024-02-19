@@ -28,6 +28,7 @@ from iouEval import iouEval, getColorEntry
 
 NUM_CHANNELS = 3
 NUM_CLASSES = 20
+NUM_CLASSES_TASK4 = 19
 
 image_transform = ToPILImage()
 input_transform_cityscapes = Compose([
@@ -51,16 +52,21 @@ def main(args):
     # input validation
     assert (args.model in ["Erfnet", "BisenetV2", "Enet"]), "Invalid model"
 
+    if args.task == 4:
+        num_classes = NUM_CLASSES_TASK4
+    else:
+        num_classes = NUM_CLASSES
+
     # model management
     if args.model == "Erfnet":
         if args.task == 2:
-            model = ERFNet_original(NUM_CLASSES)
+            model = ERFNet_original(num_classes)
         else:
-            model = ERFNet(NUM_CLASSES)
+            model = ERFNet(num_classes)
     elif args.model == "BisenetV2":
-        model = BiSeNetv2(num_class=NUM_CLASSES, use_aux=False)  # no aux heads for inference
+        model = BiSeNetv2(num_class=num_classes, use_aux=False)  # no aux heads for inference
     elif args.model == "Enet":
-        model = ENet(num_class=NUM_CLASSES)
+        model = ENet(num_class=num_classes)
     else:
         raise ValueError("Invalid model")
 
