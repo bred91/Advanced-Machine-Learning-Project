@@ -1,16 +1,15 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import os
-import cv2
 import glob
 import torch
 import random
 from PIL import Image
 import numpy as np
 from erfnet import ERFNet
+from erfnet2 import ERFNet as ERFNet_original
 from bisenetv2 import BiSeNetv2
 from enet import ENet
 import torch.nn.functional as F
-import os.path as osp
 from argparse import ArgumentParser
 from ood_metrics import fpr_at_95_tpr, calc_metrics, plot_roc, plot_pr, plot_barcode
 from sklearn.metrics import roc_auc_score, roc_curve, auc, precision_recall_curve, average_precision_score
@@ -24,6 +23,7 @@ torch.manual_seed(seed)
 
 NUM_CHANNELS = 3
 NUM_CLASSES = 19
+NUM_CLASSES_TASK3 = 20
 # gpu training specific
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
@@ -40,7 +40,7 @@ def main():
     )
     parser.add_argument('--loadDir', default="../")
     parser.add_argument('--loadWeights', default="trained_models/erfnet_pretrained.pth")
-    parser.add_argument('--loadModel', default="eval/erfnet2.py")
+    parser.add_argument('--loadModel', default="eval/erfnet_original.py")
     parser.add_argument('--subset', default="val")  # can be val or train (must have labels)
     parser.add_argument('--datadir', default="/home/shyam/ViT-Adapter/segmentation/data/cityscapes/")
     parser.add_argument('--num-workers', type=int, default=4)
@@ -80,13 +80,21 @@ def main():
     print("Loading model: " + modelpath)
     print("Loading weights: " + weightspath)
 
+    if args.task == 3:
+        num_classes = NUM_CLASSES_TASK3
+    else:
+        num_classes = NUM_CLASSES
+
     # model management
     if args.model == "Erfnet":
-        model = ERFNet(NUM_CLASSES)
+        if args.task == 2:
+            model = ERFNet_original(num_classes)
+        else:
+            model = ERFNet(num_classes)
     elif args.model == "BisenetV2":
-        model = BiSeNetv2(num_class=NUM_CLASSES, use_aux=False)  # no aux heads for inference
+        model = BiSeNetv2(num_class=num_classes, use_aux=False)  # no aux heads for inference
     elif args.model == "Enet":
-        model = ENet(NUM_CLASSES)
+        model = ENet(num_classes)
     else:
         raise ValueError("Invalid model")
 
@@ -106,13 +114,16 @@ def main():
                 own_state[name].copy_(param)
         return model
 
-    def task4_load_my_state_dict(model, state_dict):  # custom function to load model when not all dict elements
+    def task4_load_my_state_dict(model, state_dict):
         own_state = model.state_dict()
         for name, param in state_dict["state_dict"].items():
             own_state["module." + name].copy_(param)
         return model
 
-    model = task4_load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
+    if args.task == 4 or args.task == 3:
+        model = task4_load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
+    else:
+        model = load_my_state_dict(model, torch.load(weightspath, map_location=lambda storage, loc: storage))
     # print(torch.load(weightspath).keys())
     # model.load_state_dict(torch.load(weightspath)["state_dict"])
     print("Model and weights LOADED successfully")
@@ -218,7 +229,7 @@ def main():
     print(f'AUPRC score: {prc_auc * 100.0}')
     print(f'FPR@TPR95: {fpr * 100.0}')
 
-    file.write(('    AUPRC score:' + str(prc_auc * 100.0) + '   FPR@TPR95:' + str(fpr * 100.0)))
+    file.write(('    AUPRC score:' + str(round(prc_auc,5) * 100.0) + '   FPR@TPR95:' + str(round(fpr,5) * 100.0)))
     file.close()
 
 
